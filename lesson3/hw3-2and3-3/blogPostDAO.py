@@ -21,7 +21,7 @@ __author__ = 'aje'
 import sys
 import re
 import datetime
-
+import pymongo
 
 
 # The Blog Post Data Access Object handles interactions with the Posts collection
@@ -54,7 +54,7 @@ class BlogPostDAO:
 
         # now insert the post
         try:
-            # XXX HW 3.2 Work Here to insert the post
+            result = self.posts.insert_one(post)
             print "Inserting the post"
         except:
             print "Error inserting post"
@@ -65,10 +65,7 @@ class BlogPostDAO:
     # returns an array of num_posts posts, reverse ordered
     def get_posts(self, num_posts):
 
-        cursor = []         # Placeholder so blog compiles before you make your changes
-
-        # XXX HW 3.2 Work here to get the posts
-
+        cursor = self.posts.find().sort("date", pymongo.DESCENDING).limit(num_posts) 
         l = []
 
         for post in cursor:
@@ -89,9 +86,7 @@ class BlogPostDAO:
     # find a post corresponding to a particular permalink
     def get_post_by_permalink(self, permalink):
 
-        post = None
-        # XXX Work here to retrieve the specified post
-
+        post = self.posts.find_one({'permalink':permalink})
         if post is not None:
             # fix up date
             post['date'] = post['date'].strftime("%A, %B %d %Y at %I:%M%p")
@@ -109,7 +104,7 @@ class BlogPostDAO:
         try:
             last_error = {'n':-1}           # this is here so the code runs before you fix the next line
             # XXX HW 3.3 Work here to add the comment to the designated post
-
+            last_error = self.posts.update_one( { 'permalink' : permalink } , { '$addToSet' : { 'comments' : comment } } )
             return last_error['n']          # return the number of documents updated
 
         except:
